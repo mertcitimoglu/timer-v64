@@ -1,5 +1,5 @@
 const { Client, GatewayIntentBits } = require('discord.js');
-const http = require('http'); // HTTP modülünü ekleyelim
+const http = require('http');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
 
@@ -8,16 +8,26 @@ client.once('ready', () => {
 });
 
 client.on('messageCreate', message => {
-    if (message.content.startsWith('!countdown')) {
+    if (message.content.startsWith('!time')) {
         const args = message.content.split(' ');
-        const time = parseInt(args[1]); // dakika olarak
+        const totalMinutes = parseInt(args[1]); // dakika olarak
         const note = args.slice(2).join(' ') || 'No note provided';
 
-        if (!isNaN(time)) {
-            message.channel.send(`Countdown started for ${time} minutes. Note: ${note}`);
-            setTimeout(() => {
-                message.channel.send(`Countdown ended! Note: ${note}`);
-            }, time * 60000);
+        if (!isNaN(totalMinutes)) {
+            let remainingMinutes = totalMinutes;
+
+            message.channel.send(`Countdown started for ${totalMinutes} minutes. Note: ${note}`);
+
+            const countdownInterval = setInterval(() => {
+                if (remainingMinutes > 0) {
+                    message.channel.send(`Remaining: ${remainingMinutes} minutes. Note: ${note}`);
+                    remainingMinutes--;
+                } else {
+                    clearInterval(countdownInterval);
+                    message.channel.send('Finish! 🎉');
+                }
+            }, 60000); // Her dakika
+
         } else {
             message.channel.send('Please provide a valid number of minutes.');
         }
